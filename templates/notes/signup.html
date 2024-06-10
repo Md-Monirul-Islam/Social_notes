@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<h1>Signup Form</h1>
+<div class="container col-4">
+    {{ form|crispy }}
+</div>
+
+{% endblock content %}
