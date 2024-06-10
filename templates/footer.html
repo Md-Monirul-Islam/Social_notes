@@ -1,0 +1,50 @@
+<style>
+    #last-part {
+      background-color: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid #e7e7e7;
+      margin-top: 20px;
+    }
+  
+    #last-part ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+  
+    #last-part ul li {
+      margin: 5px 0;
+    }
+  
+    #last-part h3 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+  
+    #last-part small {
+      color: #6c757d;
+      font-size: 0.9em;
+    }
+  </style>
+
+<footer id="last-part" class="mt-2">
+    <ul>
+      <li>
+        <h3>Official News Portal - Kopotakkho Electronics</h3>
+      </li>
+      <li>
+        <small>Copyright &copy; <span id="year"></span> No</small>
+      </li>
+      <li>
+        <small>All rights not reserved</small>
+      </li>
+    </ul>
+  </footer>
+  
+  <script>
+  
+    let date = new Date();
+    document.getElementById('year').innerText = date.getFullYear();
+  
+  </script>
