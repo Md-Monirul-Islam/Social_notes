@@ -2,14 +2,16 @@
 {% load static %}
 {% load crispy_forms_tags %}
 {% block content %}
+<style>
+    /* Add your custom styles here */
+</style>
 <h1>Signup Form</h1>
 <div class="container border p-3 rounded col-4">
     <form method="post" action="{% url 'notes:signup' %}" id="signupForm">
         {% csrf_token %}
         {{ form|crispy }}
-        <input class="signup" type="submit" value="Signup">
+        <input class="signup" type="submit" value="Signup"></input>
     </form>
-    <div id="errorMessages" style="color: red;"></div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
@@ -17,27 +19,32 @@
 <script>
     $(document).on('submit', '#signupForm', function(e) {
         e.preventDefault();
+        var name = $('#id_first_name').val();
+        var username = $('#id_username').val();
+        var email = $('#id_email').val();
+        var password = $('#id_password').val();
+        var confirm_password = $('#id_confirm_password').val();
 
+        // ajax call
         $.ajax({
             type: 'POST',
             url: '{% url "notes:signup" %}',
             data: {
-                first_name: $('#id_first_name').val(),
-                username: $('#id_username').val(),
-                email: $('#id_email').val(),
-                password: $('#id_password').val(),
-                confirm_password: $('#id_confirm_password').val(),
+                first_name: name,
+                username: username,
+                email: email,
+                password: password,
+                confirm_password: confirm_password,
                 csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
             },
             dataType: 'json',
             success: function(response) {
-                if(response.status === 'success'){
+                if (response.status === 'success') {
                     alert(response.message);
+                    window.location.href = '{% url "notes:login" %}';
                 } else {
-                    $('#errorMessages').html('');
-                    $.each(response.errors, function(key, value) {
-                        $('#errorMessages').append('<p>' + key + ': ' + value[0].message + '</p>');
-                    });
+                    alert(response.message);
+                    // Optionally, you can display form errors to the user here
                 }
             },
             error: function(xhr, errmsg, err) {
@@ -46,4 +53,5 @@
         });
     });
 </script>
+
 {% endblock content %}
