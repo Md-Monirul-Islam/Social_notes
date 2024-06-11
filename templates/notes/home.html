@@ -3,5 +3,8 @@
 {% block content %}
 
 <h1>Hello World</h1>
+{{ request.user.username }}<br>
+{{ request.user.email }}<br>
+<p>Logout here <a href="{% url 'notes:logout' %}" class="btn btn-outline-success">Logout</a></p>
 
 {% endblock content %}

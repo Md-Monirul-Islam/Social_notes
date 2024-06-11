@@ -10,7 +10,7 @@
     <form method="post" action="{% url 'notes:signup' %}" id="signupForm">
         {% csrf_token %}
         {{ form|crispy }}
-        <input class="signup" type="submit" value="Signup"></input>
+        <input class="signup" type="submit" value="Signup">
     </form>
 </div>
 

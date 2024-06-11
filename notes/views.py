@@ -1,13 +1,16 @@
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth import authenticate, login as auth_login
-from django.http import JsonResponse
+from django.shortcuts import render, redirect # type: ignore
+from django.contrib import messages # type: ignore
+from django.contrib.auth.models import User # type: ignore
+from django.contrib.auth.hashers import make_password # type: ignore
+from django.contrib.auth import authenticate, login as auth_login,logout # type: ignore
+from django.http import JsonResponse # type: ignore
 from .forms import SignupForm,LoginForm
 
 def home(request):
-    return render(request, 'notes/home.html')
+    if request.user.is_authenticated:
+        return render(request, 'notes/home.html')
+    else:
+        return redirect('notes:login')
 
 def signup(request):
     if request.method == 'POST':
@@ -24,11 +27,11 @@ def signup(request):
                 email=email,
                 password=password
             )
-            response = {'status': 'success', 'message': 'User registered successfully.'}
+            response = {'status':'User registered successfully.'}
             return JsonResponse(response)
         else:
             errors = form.errors.as_json()
-            response = {'status': 'error', 'message': 'Invalid form submission.', 'errors': errors}
+            response = {'status':'Invalid form submission.', 'errors': errors}
             return JsonResponse(response)
     else:
         form = SignupForm()
@@ -43,14 +46,22 @@ def login(request):
         if form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
-            user = authenticate(request, username=username, password=password)
+            
+            try:
+                user = authenticate(request, username=username, password=password)
+                print(username,password)
+            except:
+                return JsonResponse({'status':'Invalid username or password.'})
             if user is not None:
                 auth_login(request, user)
-                return redirect('notes:login')  # Replace 'home' with your desired redirect URL
+                return JsonResponse({'status':"User login successfully"})
+                # messages.success(request,"User login successfull.")
+                # return redirect('notes:login') # redirect using ajax
             else:
-                messages.error(request, 'Invalid username or password.')
+                # messages.error(request, 'Invalid username or password.')
+                return JsonResponse({'status':'Invalid username or password.'})
         else:
-            messages.error(request, 'Invalid username or password.')
+            return JsonResponse({'status':'Invalid username or password.'})
     else:
         form = LoginForm()
     
@@ -59,3 +70,8 @@ def login(request):
     }
 
     return render(request, 'notes/login.html', data)
+
+
+def userLogout(request):
+    logout(request)
+    return redirect('notes:login')

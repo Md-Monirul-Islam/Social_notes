@@ -4,12 +4,43 @@
 {% block content %}
 
 <h1>Login Form</h1>
+<p id='message' class='text-red'></p>
 <div class="container border p-3 rounded col-4">
-    <form method="post" action="{% url 'notes:login' %}" id="signupForm">
+    <form method="post" action="{% url 'notes:login' %}" id="loginupForm">
         {% csrf_token %}
         {{ form|crispy }}
-        <input class="signup" type="submit" value="Login"></input>
+        <input class="signup" type="submit" value="Login" />
     </form>
 </div>
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+<script>
+    $(document).on('submit','#loginupForm',function(e){
+        e.preventDefault();
+        var username = $('#id_username').val();
+        var password = $('#id_password').val();
+
+        //ajax call
+        $.ajax({
+            type: 'POST',
+            url: '{% url "notes:login" %}',
+            data: {
+                username:username,
+                password:password,
+                csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val(),
+            },
+            success: function(response) {
+                console.log(response.status);
+                $('#message').text(response.status);
+                $('#message').addClass('p-2')
+                if (response.status === "User login successfully") {
+                    $('#message').addClass('bg-info text-primary text-center')
+                    window.location.href = '{% url "notes:home" %}';
+                } else {
+                    $('#message').addClass('bg-danger text-warning text-center')
+                }
+            },
+        })
+    })
+</script>
 
 {% endblock content %}

@@ -1,3 +1,42 @@
+.nav{
+    margin-left: 30px;
+  }
+  
+  .navbar-light .navbar-nav .nav-link {
+    color: #000; /* Ensure text is dark */
+  }
+  
+  .navbar-light .navbar-nav .nav-link:hover {
+    color: #0056b3; /* Change on hover */
+  }
+  
+  .navbar-light .navbar-nav .dropdown-menu {
+    background-color: #fff; /* Dropdown background color */
+  }
+  
+  .navbar-light .navbar-nav .dropdown-menu .dropdown-item {
+    color: #000; /* Dropdown item text color */
+  }
+  
+  .navbar-light .navbar-nav .dropdown-menu .dropdown-item:hover {
+    background-color: #f8f9fa; /* Hover effect */
+  }
+  
+  .form-control {
+    border-radius: 0.25rem; /* Slightly rounded corners */
+  }
+  
+  .btn-outline-success {
+    border-color: #28a745;
+    color: #28a745;
+  }
+  
+  .btn-outline-success:hover {
+    background-color: #28a745;
+    color: #fff;
+  }
+
+
 h1{
     color: rgb(34, 105, 167);
     text-align: center;
