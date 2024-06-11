@@ -1,4 +1,4 @@
-from django import forms
+from django import forms # type: ignore
 
 class SignupForm(forms.Form):
     name = forms.CharField(max_length=200, required=True)
