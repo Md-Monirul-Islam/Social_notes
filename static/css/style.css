@@ -1,3 +1,14 @@
 h1{
-    color: rgb(65, 131, 189);
+    color: rgb(34, 105, 167);
+    text-align: center;
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+.signup{
+    color: aliceblue;
+    background-color: rgb(34, 105, 167); 
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    display: inline-block;
 }
