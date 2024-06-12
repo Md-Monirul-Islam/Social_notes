@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
+from .models import Note
 
 class SignupForm(forms.ModelForm):
     confirm_password = forms.CharField(widget=forms.PasswordInput)
@@ -39,3 +40,11 @@ class SignupForm(forms.ModelForm):
 class LoginForm(AuthenticationForm):
     username = forms.CharField(max_length=254, required=True, widget=forms.TextInput(attrs={'placeholder': 'Username'}))
     password = forms.CharField(label='Password', widget=forms.PasswordInput(attrs={'placeholder': 'Password'}))
+
+
+
+class NoteForm(forms.ModelForm):
+    class Meta:
+        model = Note
+        fields = ('title','description')
+        exclude = ('id',)

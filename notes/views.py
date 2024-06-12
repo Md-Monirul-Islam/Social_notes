@@ -4,13 +4,36 @@ from django.contrib.auth.models import User # type: ignore
 from django.contrib.auth.hashers import make_password # type: ignore
 from django.contrib.auth import authenticate, login as auth_login,logout # type: ignore
 from django.http import JsonResponse # type: ignore
-from .forms import SignupForm,LoginForm
+from .forms import SignupForm,LoginForm,NoteForm
+from .models import Note
 
 def home(request):
     if request.user.is_authenticated:
-        return render(request, 'notes/home.html')
+        notes = Note.objects.filter(user = request.user).order_by('-id')
+        if request.method == 'POST':
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            print(title,'----',description)
+            note = Note()
+            note.title = title
+            note.description = description
+            note.user = request.user
+            note.save()
+
+            notes = Note.objects.values().filter(user = request.user).order_by('-id')
+            note_list = list(notes)
+            response = {'status': 'Note added successfully!','note_list':note_list}
+            return JsonResponse(response)
+        form = NoteForm()
+        data = {
+            'form':form,
+            'notes':notes,
+        }
+        return render(request, 'notes/home.html',data)
     else:
         return redirect('notes:login')
+    
+    
 
 def signup(request):
     if request.method == 'POST':
@@ -27,11 +50,11 @@ def signup(request):
                 email=email,
                 password=password
             )
-            response = {'status':'User registered successfully.'}
+            response = {'status': 'success', 'message': 'User registered successfully.'}
             return JsonResponse(response)
         else:
             errors = form.errors.as_json()
-            response = {'status':'Invalid form submission.', 'errors': errors}
+            response = {'status': 'error', 'message': 'Invalid form submission.', 'errors': errors}
             return JsonResponse(response)
     else:
         form = SignupForm()

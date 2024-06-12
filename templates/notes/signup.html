@@ -42,6 +42,11 @@
                 if (response.status === 'success') {
                     alert(response.message);
                     window.location.href = '{% url "notes:login" %}';
+                    $('#id_first_name').val('');
+                    $('#id_username').val('');
+                    $('#id_email').val('');
+                    $('#id_password').val('');
+                    $('#id_confirm_password').val('');
                 } else {
                     alert(response.message);
                     // Optionally, you can display form errors to the user here
@@ -53,5 +58,6 @@
         });
     });
 </script>
+
 
 {% endblock content %}

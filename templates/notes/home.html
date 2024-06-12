@@ -1,10 +1,109 @@
 {% extends "base.html" %}
 {% load static %}
+{% load crispy_forms_tags %}
 {% block content %}
 
 <h1>Hello World</h1>
-{{ request.user.username }}<br>
+<h3>Welcome <strong>{{ request.user.username }}</strong></h3><br>
 {{ request.user.email }}<br>
 <p>Logout here <a href="{% url 'notes:logout' %}" class="btn btn-outline-success">Logout</a></p>
+<div class="container">
+    <div class="row">
+        <!-- Form Section -->
+        <div class="col-lg-6">
+            <div class="container border p-3 rounded mx-auto">
+                <p id="message"></p>
+                <h3 class="note">Add your note here</h3>
+                <form method="post" action="" id="noteAddForm">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <input class="signup btn btn-primary" type="submit" value="Add Note" />
+                </form>
+            </div>
+        </div>
+        <!-- Table Section -->
+        <div class="col-lg-6">
+            <table class="table" id="noteTable">
+                <thead>
+                    <tr>
+                        <th scope="col">S.No</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Edit</th>
+                        <th scope="col">Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for note in notes %}
+                    <tr>
+                        <th scope="row">{{ forloop.counter }}</th>
+                        <td>{{ note.title }}</td>
+                        <td>{{ note.description }}</td>
+                        <td>
+                            <button data-id="{{ note.id }}" class="btn btn-warning">
+                                Edit
+                            </button>
+                        </td>
+                        <td>
+                            <button data-id="{{ note.id }}" class="btn btn-danger">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $('#noteTable').DataTable();
+    });
+
+    $(document).on('submit', '#noteAddForm', function(e){
+        e.preventDefault();
+
+        let title = $('#id_title').val();
+        let description = $('#id_description').val();
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "notes:home" %}',
+            data: {
+                title: title,
+                description: description,
+                csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response){
+                $('#message').text(response.status).addClass('p-2 bg-info text-primary text-center');
+                
+                if(response.status === 'Note added successfully!'){
+                    $('#noteTable tbody').empty();
+                    $.each(response.note_list, function(index, note){
+                        $('#noteTable tbody').append(
+                            `<tr>
+                                <th scope="row">${index + 1}</th>
+                                <td>${note.title}</td>
+                                <td>${note.description}</td>
+                                <td>
+                                    <button data-id="${note.id}" class="btn btn-warning">Edit</button>
+                                </td>
+                                <td>
+                                    <button data-id="${note.id}" class="btn btn-danger">Delete</button>
+                                </td>
+                            </tr>`
+                        );
+                    });
+                }
+                
+                $('#noteAddForm').trigger('reset');
+            }
+        });
+    });
+</script>
 
 {% endblock content %}
