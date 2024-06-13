@@ -61,37 +61,43 @@
 <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
 <script>
     $(document).ready(function(){
-        $('#noteTable').DataTable; //DataTable()
+        $('#noteTable').DataTable //DataTable();
     });
-    //edit function
+
+    let activeItem = null;
+
     function editItem(item){
         var title = item.find('.title').text();
         var description = item.find('.description').text();
         var edit_id = item.find('.edit').attr('data-id');
-        //console.log(title, description, edit_id);
-        $('#id_title').val(title)
-        $('#id_description').val(description)
-        $('#add').val('Update Note')
-        $('#add').removeClass('bg-primary').addClass('bg-warning text-dark')
-        //$('#add').addClass('bg-danger')
-
+        $('#id_title').val(title);
+        $('#id_description').val(description);
+        $('#add').val('Update Note');
+        $('#add').removeClass('btn-primary').addClass('btn-warning text-dark');
+        activeItem = edit_id;
     }
 
-    // form submission
     $(document).on('submit', '#noteAddForm', function(e){
         e.preventDefault();
 
         let title = $('#id_title').val();
         let description = $('#id_description').val();
+        let url = '{% url "notes:home" %}';
+        let data = {
+            title: title,
+            description: description,
+            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+        };
+
+        if(activeItem != null){
+            url = '{% url "notes:edit_note" %}';
+            data['edit_id'] = activeItem;
+        }
 
         $.ajax({
             type: 'POST',
-            url: '{% url "notes:home" %}',
-            data: {
-                title: title,
-                description: description,
-                csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
-            },
+            url: url,
+            data: data,
             success: function(response){
                 $('#message').text(response.status).addClass('p-2 bg-info text-primary text-center');
                 
@@ -101,10 +107,10 @@
                         $('#noteTable tbody').append(
                             `<tr>
                                 <th scope="row">${index + 1}</th>
-                                <td>${note.title}</td>
-                                <td>${note.description}</td>
+                                <td class="title">${note.title}</td>
+                                <td class="description">${note.description}</td>
                                 <td>
-                                    <button data-id="${note.id}" class="btn btn-warning">Edit</button>
+                                    <button data-id="${note.id}" class="btn btn-warning edit">Edit</button>
                                 </td>
                                 <td>
                                     <button data-id="${note.id}" class="btn btn-danger">Delete</button>
@@ -113,12 +119,20 @@
                         );
                     });
                 }
-                
+
                 $('#noteAddForm').trigger('reset');
+                $('#add').val('Add Note');
+                $('#add').removeClass('btn-warning text-dark').addClass('btn-primary');
+                if(response.status === 'Note Updated successfully!'){
+                    $('#message').text(response.message)
+                    $('#message').removeClass('btn-primary')
+                    $('#message').addClass('btn-success')
+                }
+                activeItem = null;
             }
         });
     });
-    // edit button click event
+
     $(document).on('click', '.edit', function(){
         var item = $(this).closest('tr');
         editItem(item);

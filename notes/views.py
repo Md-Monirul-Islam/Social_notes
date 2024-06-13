@@ -33,6 +33,17 @@ def home(request):
     else:
         return redirect('notes:login')
     
+
+def edit_note(request):
+    edit_id = request.POST.get('edit_id')
+    title = request.POST.get('title')
+    description = request.POST.get('description')
+    Note.objects.filter(id = edit_id).update(title=title,description=description)
+    notes = Note.objects.values().filter(user = request.user).order_by('-id')
+    note_list = list(notes)
+    response = {'status': 'Note Updated successfully!','note_list':note_list}
+    return JsonResponse(response)
+    
     
 
 def signup(request):
