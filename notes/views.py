@@ -22,7 +22,10 @@ def home(request):
 
             notes = Note.objects.values().filter(user = request.user).order_by('-id')
             note_list = list(notes)
-            response = {'status': 'Note added successfully!','note_list':note_list}
+            response = {
+                'status': 'Note added successfully!',
+                'note_list':note_list
+                }
             return JsonResponse(response)
         form = NoteForm()
         data = {
@@ -38,11 +41,40 @@ def edit_note(request):
     edit_id = request.POST.get('edit_id')
     title = request.POST.get('title')
     description = request.POST.get('description')
-    Note.objects.filter(id = edit_id).update(title=title,description=description)
-    notes = Note.objects.values().filter(user = request.user).order_by('-id')
-    note_list = list(notes)
-    response = {'status': 'Note Updated successfully!','note_list':note_list}
+    Note.objects.filter(id=edit_id).update(title=title, description=description)
+    
+    # Retrieve the updated note
+    updated_note = Note.objects.values().get(id=edit_id)
+    
+    response = {
+        'status': 'Note Updated successfully!',
+        'updated_note': updated_note
+    }
     return JsonResponse(response)
+
+
+
+def delete_note(request):
+    delete_id = request.GET.get('delete_id')
+    note = Note.objects.filter(id=delete_id).first()
+    
+    if note:
+        note.delete()
+        status_message = 'Note deleted successfully!'
+    else:
+        status_message = 'Note not found!'
+    
+    notes = Note.objects.filter(user=request.user).order_by('-id')
+    note_list = list(notes.values('id', 'title', 'description'))
+    
+    response = {
+        'status': status_message,
+        'note_list': note_list
+    }
+    
+    return JsonResponse(response)
+
+
     
     
 

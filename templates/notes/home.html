@@ -23,7 +23,7 @@
         </div>
         <!-- Table Section -->
         <div class="col-lg-6">
-            <table class="table" id="noteTable">
+            <table class=" table table-responsive" id="noteTable">
                 <thead>
                     <tr>
                         <th scope="col">S.No</th>
@@ -40,12 +40,12 @@
                         <td class="title">{{ note.title }}</td>
                         <td class="description">{{ note.description }}</td>
                         <td>
-                            <button data-id="{{ note.id }}" class="btn btn-warning edit">
+                            <button data-id="{{ note.id }}" class="btn btn-warning btn-sm me-1 edit">
                                 Edit
                             </button>
                         </td>
                         <td>
-                            <button data-id="{{ note.id }}" class="btn btn-danger">
+                            <button data-id="{{ note.id }}" class="btn btn-danger btn-sm me-1 delete">
                                 Delete
                             </button>
                         </td>
@@ -61,11 +61,202 @@
 <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
 <script>
     $(document).ready(function(){
-        $('#noteTable').DataTable //DataTable();
+        $('#noteTable').DataTable(); // Initialize DataTable correctly
+    });
+    
+    function showNotes(data) {
+        $('#noteTable tbody').empty();
+        $.each(data.note_list, function(index, note) {
+            $('#noteTable tbody').append(
+                `<tr>
+                    <th scope="row">${index + 1}</th>
+                    <td class="title">${note.title}</td>
+                    <td class="description">${note.description}</td>
+                    <td>
+                        <button data-id="${note.id}" class="btn btn-warning btn-sm me-1 edit">Edit</button>
+                    </td>
+                    <td>
+                        <button data-id="${note.id}" class="btn btn-danger btn-sm me-1 delete">Delete</button>
+                    </td>
+                </tr>`
+            );
+        });
+    }
+    
+    let activeItem = null;
+    
+    function editItem(item) {
+        var title = item.find('.title').text();
+        var description = item.find('.description').text();
+        var edit_id = item.find('.edit').attr('data-id');
+        $('#id_title').val(title);
+        $('#id_description').val(description);
+        $('#add').val('Update Note');
+        $('#add').removeClass('btn-primary').addClass('btn-warning text-dark');
+        activeItem = edit_id;
+    }
+    
+    function deleteNote(delete_id) {
+        $.ajax({
+            type: "GET",
+            url: "{% url 'notes:delete_note' %}",
+            data: {
+                'delete_id': delete_id
+            },
+            success: function(response) {
+                console.log(response);
+                if (response.status === 'Note deleted successfully!') {
+                    showNotes(response);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("AJAX Error: " + status + error);
+            }
+        });
+    }
+    
+    $(document).on('submit', '#noteAddForm', function(e) {
+        e.preventDefault();
+    
+        let title = $('#id_title').val();
+        let description = $('#id_description').val();
+        let url = '{% url "notes:home" %}';
+        let data = {
+            title: title,
+            description: description,
+            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+        };
+    
+        if (activeItem != null) {
+            url = '{% url "notes:edit_note" %}';
+            data['edit_id'] = activeItem;
+        }
+    
+        $.ajax({
+            type: 'POST',
+            url: url,
+            data: data,
+            success: function(response) {
+                $('#message').text(response.status).addClass('p-2 bg-info text-primary text-center');
+                
+                if (response.status === 'Note added successfully!') {
+                    showNotes(response);
+                }
+    
+                if (response.status === 'Note Updated successfully!') {
+                    let updatedNote = response.updated_note;
+                    let row = $(`#noteTable .edit[data-id='${updatedNote.id}']`).closest('tr');
+                    row.find('.title').text(updatedNote.title);
+                    row.find('.description').text(updatedNote.description);
+                }
+    
+                $('#noteAddForm').trigger('reset');
+                $('#add').val('Add Note');
+                $('#add').removeClass('btn-warning text-dark').addClass('btn-primary');
+                activeItem = null;
+            }
+        });
+    });
+    
+    $(document).on('click', '.edit', function() {
+        var item = $(this).closest('tr');
+        console.log(item);
+        editItem(item);
+    });
+    
+    $(document).on('click', '.delete', function() {
+        var delete_id = $(this).attr('data-id');
+        console.log(delete_id);
+        deleteNote(delete_id);
     });
 
-    let activeItem = null;
+</script>
 
+
+{% endblock content %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% comment %} {% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<h1>Hello World</h1>
+<h3>Welcome <strong>{{ request.user.username }}</strong></h3><br>
+{{ request.user.email }}<br>
+<p>Logout here <a href="{% url 'notes:logout' %}" class="btn btn-outline-success">Logout</a></p>
+<div class="container">
+    <div class="row">
+        <!-- Form Section -->
+        <div class="col-lg-6">
+            <div class="container border p-3 rounded mx-auto">
+                <p id="message"></p>
+                <h3 class="note">Add your note here</h3>
+                <form method="post" action="" id="noteAddForm">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <input class="btn btn-primary" type="submit" value="Add Note" id='add' />
+                </form>
+            </div>
+        </div>
+        <!-- Table Section -->
+        <div class="col-lg-6">
+            <table class=" table table-responsive" id="noteTable">
+                <thead>
+                    <tr>
+                        <th scope="col">S.No</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Edit</th>
+                        <th scope="col">Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for note in notes %}
+                    <tr>
+                        <th scope="row">{{ forloop.counter }}</th>
+                        <td class="title">{{ note.title }}</td>
+                        <td class="description">{{ note.description }}</td>
+                        <td>
+                            <button data-id="{{ note.id }}" class="btn btn-warning btn-sm me-1 edit">
+                                Edit
+                            </button>
+                        </td>
+                        <td>
+                            <button data-id="{{ note.id }}" class="btn btn-danger btn-sm me-1 delete">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+<script>
+    $(document).ready(function(){
+        $('#noteTable').DataTable(); // Initialize DataTable correctly
+    });
+    
+    let activeItem = null;
+    
     function editItem(item){
         var title = item.find('.title').text();
         var description = item.find('.description').text();
@@ -76,10 +267,44 @@
         $('#add').removeClass('btn-primary').addClass('btn-warning text-dark');
         activeItem = edit_id;
     }
-
+    
+    function deleteNote(delete_id){
+        $.ajax({
+            type: "GET",
+            url: "{% url 'notes:delete_note' %}",
+            data: {
+                'delete_id': delete_id
+            },
+            success: function(response){
+                console.log(response);
+                if(response.status === 'Note deleted successfully!'){
+                    $('#noteTable tbody').empty();
+                    $.each(response.note_list, function(index, note){
+                        $('#noteTable tbody').append(
+                            `<tr>
+                                <th scope="row">${index + 1}</th>
+                                <td class="title">${note.title}</td>
+                                <td class="description">${note.description}</td>
+                                <td>
+                                    <button data-id="${note.id}" class="btn btn-warning edit">Edit</button>
+                                </td>
+                                <td>
+                                    <button data-id="${note.id}" class="btn btn-danger delete">Delete</button>
+                                </td>
+                            </tr>`
+                        );
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("AJAX Error: " + status + error);
+            }
+        });
+    }
+    
     $(document).on('submit', '#noteAddForm', function(e){
         e.preventDefault();
-
+    
         let title = $('#id_title').val();
         let description = $('#id_description').val();
         let url = '{% url "notes:home" %}';
@@ -88,12 +313,12 @@
             description: description,
             csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
         };
-
+    
         if(activeItem != null){
             url = '{% url "notes:edit_note" %}';
             data['edit_id'] = activeItem;
         }
-
+    
         $.ajax({
             type: 'POST',
             url: url,
@@ -113,31 +338,41 @@
                                     <button data-id="${note.id}" class="btn btn-warning edit">Edit</button>
                                 </td>
                                 <td>
-                                    <button data-id="${note.id}" class="btn btn-danger">Delete</button>
+                                    <button data-id="${note.id}" class="btn btn-danger delete">Delete</button>
                                 </td>
                             </tr>`
                         );
                     });
                 }
-
+    
+                if(response.status === 'Note Updated successfully!'){
+                    let updatedNote = response.updated_note;
+                    let row = $(`#noteTable .edit[data-id='${updatedNote.id}']`).closest('tr');
+                    row.find('.title').text(updatedNote.title);
+                    row.find('.description').text(updatedNote.description);
+                }
+    
                 $('#noteAddForm').trigger('reset');
                 $('#add').val('Add Note');
                 $('#add').removeClass('btn-warning text-dark').addClass('btn-primary');
-                if(response.status === 'Note Updated successfully!'){
-                    $('#message').text(response.message)
-                    $('#message').removeClass('btn-primary')
-                    $('#message').addClass('btn-success')
-                }
                 activeItem = null;
             }
         });
     });
-
+    
     $(document).on('click', '.edit', function(){
         var item = $(this).closest('tr');
+        console.log(item);
         editItem(item);
     });
-
+    
+    $(document).on('click', '.delete', function(){
+        var delete_id = $(this).attr('data-id');
+        console.log(delete_id);
+        deleteNote(delete_id);
+    });
+    
 </script>
 
-{% endblock content %}
+
+{% endblock content %} {% endcomment %}
