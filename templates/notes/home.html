@@ -17,7 +17,7 @@
                 <form method="post" action="" id="noteAddForm">
                     {% csrf_token %}
                     {{ form|crispy }}
-                    <input class="signup btn btn-primary" type="submit" value="Add Note" />
+                    <input class="btn btn-primary" type="submit" value="Add Note" id='add' />
                 </form>
             </div>
         </div>
@@ -37,10 +37,10 @@
                     {% for note in notes %}
                     <tr>
                         <th scope="row">{{ forloop.counter }}</th>
-                        <td>{{ note.title }}</td>
-                        <td>{{ note.description }}</td>
+                        <td class="title">{{ note.title }}</td>
+                        <td class="description">{{ note.description }}</td>
                         <td>
-                            <button data-id="{{ note.id }}" class="btn btn-warning">
+                            <button data-id="{{ note.id }}" class="btn btn-warning edit">
                                 Edit
                             </button>
                         </td>
@@ -61,9 +61,23 @@
 <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
 <script>
     $(document).ready(function(){
-        $('#noteTable').DataTable();
+        $('#noteTable').DataTable; //DataTable()
     });
+    //edit function
+    function editItem(item){
+        var title = item.find('.title').text();
+        var description = item.find('.description').text();
+        var edit_id = item.find('.edit').attr('data-id');
+        //console.log(title, description, edit_id);
+        $('#id_title').val(title)
+        $('#id_description').val(description)
+        $('#add').val('Update Note')
+        $('#add').removeClass('bg-primary').addClass('bg-warning text-dark')
+        //$('#add').addClass('bg-danger')
 
+    }
+
+    // form submission
     $(document).on('submit', '#noteAddForm', function(e){
         e.preventDefault();
 
@@ -104,6 +118,12 @@
             }
         });
     });
+    // edit button click event
+    $(document).on('click', '.edit', function(){
+        var item = $(this).closest('tr');
+        editItem(item);
+    });
+
 </script>
 
 {% endblock content %}
